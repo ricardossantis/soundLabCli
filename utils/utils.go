@@ -17,7 +17,15 @@ type LoginResp struct {
 	Token string `json:"token,omitempty"`
 }
 
-const SOUND_LAB_SERVER = "http://localhost:5000"
+type MarketName struct {
+	Name string `json:"name,omitempty"`
+}
+
+type CreateMktResp struct {
+	Name string `json:"name,omitempty"`
+}
+
+const SOUND_LAB_SERVER = "http://localhost:3000"
 
 func Login(credentials Credentials) LoginResp {
 	url := SOUND_LAB_SERVER + "/user/login"
@@ -35,10 +43,45 @@ func Login(credentials Credentials) LoginResp {
 		panic(err)
 	}
 	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		fmt.Println("Error:", resp)
+	}
+
 	responseData, _ := ioutil.ReadAll(resp.Body)
 
 	loginCreateResp := LoginResp{}
 	_ = json.Unmarshal(responseData, &loginCreateResp)
 
 	return loginCreateResp
+}
+
+func CreateMarketplace(name MarketName, token string) CreateMktResp {
+	url := SOUND_LAB_SERVER + "/marketplace/create"
+	nameJson, err := json.Marshal(name)
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Printf("token: %+v\n", token)
+	req, _ := http.NewRequest("POST", url, bytes.NewBuffer([]byte(nameJson)))
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+token)
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		panic(err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		fmt.Println("Error:", resp.Status)
+	}
+
+	responseData, _ := ioutil.ReadAll(resp.Body)
+
+	CreateMktResp := CreateMktResp{}
+	_ = json.Unmarshal(responseData, &CreateMktResp)
+
+	return CreateMktResp
 }

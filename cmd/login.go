@@ -1,18 +1,19 @@
 /*
-Copyright © 2023 NAME HERE <EMAIL ADDRESS>
+Copyright © 2023 Ricardo Santis
 */
 package cmd
 
 import (
 	"fmt"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 	"soundLabCli/utils"
 )
 
 var loginCmd = &cobra.Command{
 	Use:   "login",
-	Short: "Create a todo",
-	Long:  `This command will create todo`,
+	Short: "Login",
+	Long:  `This command will login`,
 	Run: func(cmd *cobra.Command, args []string) {
 
 		username, _ := cmd.Flags().GetString("username")
@@ -25,6 +26,8 @@ var loginCmd = &cobra.Command{
 
 		resp := utils.Login(credentials)
 		fmt.Printf("Token created: %+v\n", resp.Token)
+		viper.Set(`token`, resp.Token)
+		viper.WriteConfig()
 	},
 }
 
