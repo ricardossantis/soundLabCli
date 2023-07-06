@@ -5,8 +5,8 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/dgraph-io/badger/v3"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 	"soundLabCli/utils"
 )
 
@@ -15,7 +15,6 @@ var loginCmd = &cobra.Command{
 	Short: "Login",
 	Long:  `This command will login`,
 	Run: func(cmd *cobra.Command, args []string) {
-
 		username, _ := cmd.Flags().GetString("username")
 		password, _ := cmd.Flags().GetString("password")
 		credentials := utils.Credentials{
@@ -23,11 +22,12 @@ var loginCmd = &cobra.Command{
 			Password: password,
 		}
 		fmt.Printf("Login in %+v\n", credentials)
-
 		resp := utils.Login(credentials)
 		fmt.Printf("Token created: %+v\n", resp.Token)
-		viper.Set(`token`, resp.Token)
-		viper.WriteConfig()
+		Db.Update(func(txn *badger.Txn) error {
+			err := txn.Set([]byte("login"), []byte(resp.Token))
+			return err
+		})
 	},
 }
 
