@@ -3,6 +3,7 @@ package utils
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -56,7 +57,7 @@ func Login(credentials Credentials) LoginResp {
 	return loginCreateResp
 }
 
-func CreateMarketplace(name MarketName, token string) CreateMktResp {
+func CreateMarketplace(name MarketName, token string) (CreateMktResp, error) {
 	url := SOUND_LAB_SERVER + "/marketplace/create"
 	nameJson, err := json.Marshal(name)
 	if err != nil {
@@ -75,7 +76,10 @@ func CreateMarketplace(name MarketName, token string) CreateMktResp {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		fmt.Println("Error:", resp.Status)
+		body, _ := ioutil.ReadAll(resp.Body)
+		errorMessage := string(body)
+		fmt.Println("Error:", errorMessage)
+		return CreateMktResp{}, errors.New(errorMessage)
 	}
 
 	responseData, _ := ioutil.ReadAll(resp.Body)
@@ -83,5 +87,5 @@ func CreateMarketplace(name MarketName, token string) CreateMktResp {
 	CreateMktResp := CreateMktResp{}
 	_ = json.Unmarshal(responseData, &CreateMktResp)
 
-	return CreateMktResp
+	return CreateMktResp, nil
 }
